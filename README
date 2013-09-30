@@ -5,6 +5,9 @@ A simple plugin framework inspired by the `work of Marty Alchin`_.
 
 `Continuous integration`_ is powered by `Jenkins`_.
 
+.. image:: http://ci.petarmaric.com/job/simple_plugins/badge/icon
+   :target: http://ci.petarmaric.com/job/simple_plugins/
+
 .. _`work of Marty Alchin`: http://martyalchin.com/2008/jan/10/simple-plugin-framework/
 .. _`Continuous integration`: http://ci.petarmaric.com/job/simple_plugins/
 .. _`Jenkins`: https://jenkins-ci.org/
