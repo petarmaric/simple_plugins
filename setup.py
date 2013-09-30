@@ -12,7 +12,7 @@ if sys.version_info < (2, 6):
 
 setup(
     name='simple_plugins',
-    version='1.0.0',
+    version='1.0.1',
     url='https://bitbucket.org/petar/simple_plugins',
     license='BSD',
     author='Petar Maric',
