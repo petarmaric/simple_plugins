@@ -19,7 +19,7 @@ class TestPluginMount(object):
             pass
         class POST(HTTPMethod):
             pass
-        class FakePOST(HTTPMethod):
+        class FakePOST(POST):
             """Both parent and its child should be registered as plugins"""
             pass
         class PUT(BaseIdempotentHTTPMethod):
