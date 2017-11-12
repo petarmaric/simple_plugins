@@ -9,3 +9,4 @@ simple_plugins.egg-info/
 html_coverage_report/
 coverage.xml
 nosetests.xml
+.eggs/
