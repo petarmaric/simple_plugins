@@ -26,17 +26,17 @@ class TestPluginMount(object):
             pass
         class DELETE(BaseIdempotentHTTPMethod):
             pass
-        
+
         self.HTTPMethod = HTTPMethod
         self.GET = GET
         self.POST = POST
         self.FakePOST = FakePOST
-        
+
         self.actual_http_method_id = 'POST'
         self.desired_http_method_instance = HTTPMethod.plugins.id_to_instance[
             self.actual_http_method_id
         ]
-        
+
         id_to_class = {
             'GET': GET, 'POST': POST, 'Fake POST': FakePOST, 'PUT': PUT,
             'DELETE': DELETE
@@ -48,7 +48,7 @@ class TestPluginMount(object):
             classes_sorted_by_id=[v for _, v in sorted(id_to_class.items())],
             valid_ids=set(id_to_class.keys()),
         )
-    
+
     def setup_http_response_plugins(self):
         class HttpResponse(object):
             """Mount point should not be registered as a plugin"""
@@ -72,19 +72,19 @@ class TestPluginMount(object):
             status_code = 400
         class NotFound(HttpResponse):
             status_code = 404
-        
+
         self.HttpResponse = HttpResponse
-        
+
         self.actual_http_response_class = MovedPermanently
         self.desired_http_response_instance = HttpResponse.plugins.id_to_instance[
             self.actual_http_response_class.status_code
         ]
         self.desired_http_response_class = type(self.desired_http_response_instance)
-    
+
     def setup(self):
         self.setup_http_method_plugins()
         self.setup_http_response_plugins()
-    
+
     def test_plugin_registration(self):
         # Not comparing as sets to be able to confirm there are no duplicates
         # in the plugin registry
@@ -92,17 +92,17 @@ class TestPluginMount(object):
             sorted(self.HTTPMethod._plugin_registry),
             sorted(self.desired_http_method_plugins.classes)
         )
-    
+
     def test_plugin_unregistration(self):
         cls = self.actual_http_response_class
         assert_in(cls, self.HttpResponse.plugins.classes)
-        
+
         cls._unregister_plugin()
         assert_not_in(cls, self.HttpResponse.plugins.classes)
-    
+
     def test_plugin_info(self):
         actual_plugins = self.HTTPMethod.plugins.copy()
-        
+
         # Special case for any instances related information
         assert_equal(
             set(type(obj) for obj in actual_plugins.pop('instances')),
@@ -116,72 +116,72 @@ class TestPluginMount(object):
             [type(obj) for obj in actual_plugins.pop('instances_sorted_by_id')],
             self.desired_http_method_plugins.pop('classes_sorted_by_id')
         )
-        
+
         # Compare the remaining plugin information directly
         assert_equal(actual_plugins, self.desired_http_method_plugins)
-    
+
     def test_contribute_to_plugins(self):
         assert_is(self.HttpResponse.plugins.contribute_to_plugins_works, True)
-    
+
     def test_distant_relatives_use_same_plugin_info_cache(self):
         self.GET._plugins = None
         self.POST._plugins = None
         assert_is(self.GET.plugins, self.POST.plugins)
-    
+
     def test_child_uses_same_plugin_info_cache_as_parent(self):
         self.FakePOST._plugins = None
         self.POST._plugins = None
         assert_is(self.FakePOST.plugins, self.POST.plugins)
-    
+
     def test_child_uses_same_plugin_info_cache_as_base_class(self):
         self.FakePOST._plugins = None
         self.HTTPMethod._plugins = None
         assert_is(self.FakePOST.plugins, self.HTTPMethod.plugins)
-    
+
     def test_parent_uses_same_plugin_info_cache_as_base_class(self):
         self.POST._plugins = None
         self.HTTPMethod._plugins = None
         assert_is(self.POST.plugins, self.HTTPMethod.plugins)
-    
+
     def test_plugins_not_shared_between_mount_points(self):
         assert self.HTTPMethod.plugins.classes.isdisjoint(
             self.HttpResponse.plugins.classes
         )
-    
+
     @issues_warnings(PerformanceWarning)
     def test_coerce_valid_http_response_instance(self):
         assert_is(
             type(self.HttpResponse.coerce(self.actual_http_response_class())),
             self.desired_http_response_class
         )
-    
+
     @issues_warnings(PerformanceWarning)
     def test_coerce_valid_http_response_class(self):
         assert_is(
             type(self.HttpResponse.coerce(self.actual_http_response_class)),
             self.desired_http_response_class
         )
-    
+
     def test_coerce_works_with_empty_plugin_info_cache(self):
         self.HttpResponse._plugins = None
         self.HTTPMethod.coerce(self.actual_http_method_id)
-    
+
     def test_coerce_nonnumeric_id(self):
         assert_is(
             self.HTTPMethod.coerce(self.actual_http_method_id),
             self.desired_http_method_instance
         )
-    
+
     def test_coerce_valid_http_response_id(self):
         assert_is(
             self.HttpResponse.coerce(self.actual_http_response_class.status_code),
             self.desired_http_response_instance
         )
-    
+
     @raises(CoercionError)
     def test_coerce_invalid_http_response_id(self):
         self.HttpResponse.coerce(-1)
-    
+
     @raises(CoercionError)
     def test_coerce_unknown_type(self):
         self.HttpResponse.coerce(object())
