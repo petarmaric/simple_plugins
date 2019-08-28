@@ -1,7 +1,7 @@
 from warnings import warn
 
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 class PerformanceWarning(UserWarning):
@@ -28,14 +28,14 @@ class PluginMount(type):
             # class shouldn't be registered as a plugin. Instead, it sets up a
             # list where plugins can be registered later.
             cls._plugin_registry = []
-            
+
             meta = getattr(cls, 'Meta', object())
             def override_options(options):
                 return dict(
                     (name, getattr(meta, name, default_value))
                     for name, default_value in options.items()
                 )
-            
+
             cls._meta = AttrDict(_base_class=cls)
             cls._meta.update(override_options({
                 'id_field': 'id',
@@ -48,15 +48,15 @@ class PluginMount(type):
                 # Simply appending it to the list is all that's needed to keep
                 # track of it later.
                 cls._plugin_registry.append(cls)
-        
+
         base_cls = cls._meta._base_class
         base_cls._plugins = None # Clear plugin cache
-    
+
     def _unregister_plugin(self):
         base_cls = self._meta._base_class
         base_cls._plugin_registry.remove(self)
         base_cls._plugins = None # Clear plugin cache
-    
+
     @property
     def plugins(self):
         base_cls = self._meta._base_class
@@ -69,24 +69,24 @@ class PluginMount(type):
             x.class_to_id = dict((v, k) for k, v in x.id_to_class.items())
             x.instances_sorted_by_id = [v for _, v in sorted(x.id_to_instance.items())]
             x.valid_ids = set(x.id_to_instance)
-            
+
             if hasattr(base_cls, '_contribute_to_plugins'):
                 base_cls._contribute_to_plugins(_plugins=x)
-            
+
             base_cls._plugins = x
-        
+
         return base_cls._plugins
-    
+
     def coerce(self, value):
         """Coerce the passed value into the right instance"""
         perf_warn_msg = "Creating too many %s instances may be expensive, passing "\
                         "the objects id is generally preferred" % self._meta._base_class
-        
+
         # Check if the passed value is already a `_base_class` instance
         if isinstance(value, self._meta._base_class):
             warn(perf_warn_msg, category=PerformanceWarning)
             return value # No coercion needed
-        
+
         # Check if the passed value is a `_base_class` subclass
         try:
             if issubclass(value, self._meta._base_class):
@@ -94,7 +94,7 @@ class PluginMount(type):
                 return value()
         except TypeError:
             pass # Passed value is not a class
-        
+
         # Check if the passed value is a valid object id
         try:
             object_id = self._meta.id_field_coerce(value)
@@ -104,7 +104,7 @@ class PluginMount(type):
                 raise CoercionError("%d is not a valid object id" % object_id)
         except (TypeError, ValueError):
             pass # Passed value can't be coerced to the object id type
-        
+
         # Can't coerce an unknown type
         raise CoercionError("Can't coerce %r to a valid %s instance" % (
             value, self._meta._base_class)
