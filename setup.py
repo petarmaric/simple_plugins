@@ -15,7 +15,7 @@ setup(
     author='Petar Maric',
     author_email='petarmaric@uns.ac.rs',
     description='A simple plugin framework',
-    long_description=open('README').read(),
+    long_description=open('README.rst').read(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
